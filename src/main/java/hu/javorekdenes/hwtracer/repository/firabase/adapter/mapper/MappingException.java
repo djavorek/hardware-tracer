@@ -1,4 +1,4 @@
-package hu.javorekdenes.hwtracer.repository.firabase.mapper;
+package hu.javorekdenes.hwtracer.repository.firabase.adapter.mapper;
 
 public class MappingException extends Exception {
     private static final String MSG = "Firebase mapping was unsuccessful.";

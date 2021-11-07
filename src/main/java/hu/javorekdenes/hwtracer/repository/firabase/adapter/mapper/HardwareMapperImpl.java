@@ -1,18 +1,21 @@
-package hu.javorekdenes.hwtracer.repository.firabase.mapper;
+package hu.javorekdenes.hwtracer.repository.firabase.adapter.mapper;
 
 import com.google.cloud.firestore.DocumentSnapshot;
 import hu.javorekdenes.hwtracer.model.Hardware;
+import hu.javorekdenes.hwtracer.model.Price;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoField;
 import java.util.Objects;
 
 @Component
 @Slf4j
-public class HardwareMapper {
+public class HardwareMapperImpl implements HardwareMapper {
     // Log template - 1. Invalid field, 2. Invalid value
     private static final String MSG_INVALID_VALUE = "Cannot parse videocard {}, falling back to default. Invalid value: {}";
     // Log template - 1. Null field
@@ -28,7 +31,7 @@ public class HardwareMapper {
         Hardware result = new Hardware();
         try {
             result.setId(parseField(Integer.class, ID_FIELD,  documentSnapshot));
-            result.setPrice(parseField(Integer.class, PRICE_FIELD, documentSnapshot));
+            result.setPrice(parseField(Price.class, PRICE_FIELD, documentSnapshot));
             result.setName(parseField(String.class, NAME_FIELD, documentSnapshot));
             result.setUrl(parseField(String.class, URL_FIELD, documentSnapshot));
             result.setUploadedDate(parseField(LocalDate.class, DATE_FIELD, documentSnapshot));
@@ -43,9 +46,12 @@ public class HardwareMapper {
 
         if (fieldType == Integer.class) {
             fieldValue = parseIntValue(objectName, document.getString(objectName));
+        } else if (fieldType == Price.class) {
+            fieldValue = parsePriceValue(objectName, document.getString(objectName));
         } else if (fieldType == LocalDate.class) {
             fieldValue = parseDateValue(objectName, document.getString(objectName));
         } else if (fieldType == String.class) {
+            System.out.println(document.getString(objectName));
             fieldValue = parseStringValue(objectName, document.getString(objectName));
         } else {
             throw new UnsupportedOperationException("Given field type is not supported");
@@ -53,15 +59,30 @@ public class HardwareMapper {
         return fieldType.cast(fieldValue);
     }
 
+    private Price parsePriceValue(String fieldName, String priceString) throws IllegalArgumentException {
+        try {
+            String amountString = priceString.substring(0, priceString.lastIndexOf(' ') + 1).replaceAll("\\s", "");
+            Integer amount = Integer.parseInt(Objects.requireNonNull(amountString));
+            return new Price(amount);
+        } catch (NumberFormatException e) {
+            log.warn(MSG_INVALID_VALUE, fieldName, priceString);
+            throw new IllegalArgumentException(e);
+        } catch (NullPointerException npe) {
+            log.warn(MSG_NULL_VALUE, fieldName);
+            throw new IllegalArgumentException(npe);
+        }
+    }
+
     private Integer parseIntValue(String fieldName, String integerString) throws IllegalArgumentException {
         try {
             return Integer.parseInt(Objects.requireNonNull(integerString));
         } catch (NumberFormatException e) {
             log.warn(MSG_INVALID_VALUE, fieldName, integerString);
+            throw new IllegalArgumentException(e);
         } catch (NullPointerException npe) {
             log.warn(MSG_NULL_VALUE, fieldName);
+            throw new IllegalArgumentException(npe);
         }
-        throw new IllegalArgumentException();
     }
 
     private LocalDate parseDateValue(String fieldName, String dateString) throws IllegalArgumentException {
@@ -71,11 +92,13 @@ public class HardwareMapper {
         }
 
         try {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH-mm-ss.SSS");
+            String basePattern = "yyyy-MM-dd HH:mm:ss";
+            DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendPattern(basePattern) // .parseLenient()
+                    .appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, true).toFormatter();
             return LocalDate.parse(dateString, formatter);
         } catch (DateTimeParseException dateException) {
             log.warn(MSG_INVALID_VALUE, fieldName, dateString);
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException(dateException);
         } catch (IllegalArgumentException formatException) {
             String msg = "Invalid date pattern used for mapping videocard fields. Fix it!";
             log.error(msg);

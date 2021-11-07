@@ -16,7 +16,7 @@ public class Hardware {
     @NonNull
     private LocalDate uploadedDate;
     @NonNull
-    private Integer price;
+    private Price price;
     @NonNull
     private String url;
     @NonNull

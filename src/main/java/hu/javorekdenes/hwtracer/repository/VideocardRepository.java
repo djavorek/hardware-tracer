@@ -6,6 +6,6 @@ import java.time.LocalDate;
 
 public interface VideocardRepository {
 
-    Hardwares findAllWhereDate(LocalDate date);
+    Hardwares findAllWhereDay(LocalDate date);
 
 }
