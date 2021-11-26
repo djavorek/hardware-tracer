@@ -1,5 +1,7 @@
-package hu.javorekdenes.hwtracer.model;
+package hu.javorekdenes.hwtracer.model.raw;
 
+import hu.javorekdenes.hwtracer.model.HardwareType;
+import hu.javorekdenes.hwtracer.model.Price;
 import lombok.*;
 
 import java.time.LocalDate;

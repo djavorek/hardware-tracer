@@ -1,8 +1,8 @@
 package hu.javorekdenes.hwtracer.repository.firabase.adapter.mapper;
 
 import com.google.cloud.firestore.DocumentSnapshot;
-import hu.javorekdenes.hwtracer.model.Hardware;
 import hu.javorekdenes.hwtracer.model.Price;
+import hu.javorekdenes.hwtracer.model.raw.Hardware;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

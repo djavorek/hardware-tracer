@@ -1,11 +1,12 @@
 package hu.javorekdenes.hwtracer.repository;
 
-import hu.javorekdenes.hwtracer.model.Hardwares;
+import hu.javorekdenes.hwtracer.model.raw.Videocard;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public interface VideocardRepository {
 
-    Hardwares findAllWhereDay(LocalDate date);
+    List<Videocard> findAllWhereDay(LocalDate date);
 
 }
