@@ -3,7 +3,7 @@ package hu.javorekdenes.hwtracer.repository.firabase.adapter;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
 import hu.javorekdenes.hwtracer.model.raw.Hardware;
-import hu.javorekdenes.hwtracer.repository.firabase.adapter.mapper.HardwareMapper;
+import hu.javorekdenes.hwtracer.repository.firabase.adapter.mapper.DocumentMapper;
 import hu.javorekdenes.hwtracer.repository.firabase.adapter.mapper.MappingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,19 +17,21 @@ import java.util.concurrent.ExecutionException;
 @Slf4j
 @Component
 public class FirestoreAdapterImpl implements FirestoreAdapter {
-    private Firestore firestore;
-    private HardwareMapper hardwareMapper;
+    private final Firestore firestore;
+
+    @Autowired // Autowire all implemented mappers
+    private List<? extends DocumentMapper<? extends Hardware>> mappers;
 
     @Autowired
-    public FirestoreAdapterImpl(Firestore firestore, HardwareMapper hardwareMapper) {
+    public FirestoreAdapterImpl(Firestore firestore) {
         this.firestore = firestore;
-        this.hardwareMapper = hardwareMapper;
     }
 
-    public List<? extends Hardware> getFromCollectionWhereFieldIs(String collection, String fieldName, String fieldValue) {
+    public List<? extends Hardware> getFromCollectionWhereFieldIs(String collection, String fieldName, String fieldValue) throws MappingException {
+        DocumentMapper<? extends Hardware> mapper = this.getMapper(collection);
         ApiFuture<QuerySnapshot> future = this.firestore.collection(collection).whereEqualTo(fieldName, fieldValue).get();
 
-        return executeQuery(future);
+        return executeQuery(mapper, future);
     }
 
     /**
@@ -39,22 +41,26 @@ public class FirestoreAdapterImpl implements FirestoreAdapter {
      * @param startsWith
      * @return
      */
-    public List<? extends Hardware> getFromCollectionWhereFieldStartsWith(String collection, String fieldName, String startsWith) {
+    public List<? extends Hardware> getFromCollectionWhereFieldStartsWith(String collection, String fieldName, String startsWith) throws MappingException {
+        DocumentMapper<? extends Hardware> mapper = this.getMapper(collection);
+
         ApiFuture<QuerySnapshot> future = this.firestore.collection(collection)
                 .whereGreaterThanOrEqualTo(fieldName, startsWith)
                 .whereLessThanOrEqualTo(fieldName, startsWith + "\uf8ff")
                 .get();
 
-        return executeQuery(future);
+        return executeQuery(mapper, future);
     }
 
-    public Optional<Hardware> getLastOrderedByField(String collection, String fieldToOrderBy) {
+    public Optional<Hardware> getLastOrderedByField(String collection, String fieldToOrderBy) throws MappingException {
+        DocumentMapper<? extends Hardware> mapper = this.getMapper(collection);
+
         ApiFuture<QuerySnapshot> future = this.firestore.collection(collection)
                 .orderBy(fieldToOrderBy)
                 .limitToLast(1)
                 .get();
 
-        List<? extends Hardware> results = executeQuery(future);
+        List<? extends Hardware> results = executeQuery(mapper, future);
 
         if (results.isEmpty()) {
             return Optional.empty();
@@ -69,7 +75,7 @@ public class FirestoreAdapterImpl implements FirestoreAdapter {
 
         objectsToSave.forEach((object) -> {
             DocumentReference document = collection.document();
-            createFutures.add(document.create(object));
+            createFutures.add(document.create(object)); // TODO: Write mapper
         });
 
         createFutures.forEach((future) -> {
@@ -77,7 +83,7 @@ public class FirestoreAdapterImpl implements FirestoreAdapter {
                 future.get();
                 log.info("New document saved successfully.");
             } catch (InterruptedException e) {
-                log.warn("Save ran into interuption");
+                log.warn("Save ran into interruption");
                 throw new FirestoreException(e);
             } catch (ExecutionException e) {
                 // log.warn("Execution problem, probably document already exists: " + e.getMessage());
@@ -87,21 +93,27 @@ public class FirestoreAdapterImpl implements FirestoreAdapter {
         log.info("Batch firestore save finished.");
     }
 
-    private List<?extends Hardware> executeQuery(ApiFuture<QuerySnapshot> future) {
-        List<Hardware> result = new ArrayList<>();
+    private DocumentMapper<? extends Hardware> getMapper(String collectionName) throws MappingException {
+        return mappers.stream().filter(mapper -> mapper.getCollectionName().equals(collectionName))
+                .findFirst()
+                .orElseThrow(MappingException::new);
+    }
+
+    private <T extends Hardware> List<T> executeQuery(DocumentMapper<T> mapper, ApiFuture<QuerySnapshot> future) {
+        List<T> result = new ArrayList<>();
 
         try {
             List<QueryDocumentSnapshot> documents = future.get().getDocuments();
 
             documents.forEach((document) -> {
                 try {
-                    result.add(hardwareMapper.fromDocumentSnapshot(document));
+                    result.add(mapper.unmarshall(document));
                 } catch (MappingException e) {
-                    log.warn("Document could not be mapped to domain object, it will not be in the results. See: {}", e);
+                    log.warn("Document could not be mapped to domain object, it will not be in the results. See: {}", e.getMessage());
                 }
             });
         } catch (InterruptedException e) {
-            log.warn("Query ran into interuption");
+            log.warn("Query ran into interruption");
             throw new FirestoreException(e);
         } catch (ExecutionException e) {
             log.warn("Execution error during query");
