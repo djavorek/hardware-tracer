@@ -7,7 +7,7 @@ import lombok.NonNull;
 import java.time.LocalDate;
 
 public class Videocard extends Hardware {
-    public Videocard(Integer id, String name, LocalDate uploadedDate, Price price, String url) {
+    public Videocard(@NonNull Integer id, @NonNull String name, @NonNull LocalDate uploadedDate, @NonNull Price price, @NonNull String url) {
         super(id, name, uploadedDate, price, url, HardwareType.VIDEOCARD);
     }
 

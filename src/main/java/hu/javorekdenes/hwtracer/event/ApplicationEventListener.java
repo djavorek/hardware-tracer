@@ -8,23 +8,23 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import hu.javorekdenes.hwtracer.service.ScrapedProcessorService;
+import hu.javorekdenes.hwtracer.service.RawProcessingService;
 
 @Component
 @Profile("!test")
 public class ApplicationEventListener {
 	private static final Logger logger = LoggerFactory.getLogger(ApplicationEventListener.class);
 
-	private ScrapedProcessorService scrapedProcessorService;
+	private RawProcessingService rawProcessingService;
 
 	@Autowired
-	public ApplicationEventListener(ScrapedProcessorService scrapedProcessorService) {
-		this.scrapedProcessorService = scrapedProcessorService;
+	public ApplicationEventListener(RawProcessingService rawProcessingService) {
+		this.rawProcessingService = rawProcessingService;
 	}
 
 	@EventListener
 	public void onApplicationEvent(ApplicationReadyEvent event) {
 		logger.info("ApplicationReady event received");
-		scrapedProcessorService.testFetch();
+		rawProcessingService.testFetch();
 	}
 }

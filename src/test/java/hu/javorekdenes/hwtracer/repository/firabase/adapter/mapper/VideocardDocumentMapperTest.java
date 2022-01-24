@@ -5,10 +5,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class RawProcessedHardwareMapperImplTest {
+class VideocardDocumentMapperTest {
 
     @Autowired
-    private HardwareMapperImpl subject;
+    private VideocardDocumentMapper subject;
 
     @Test
     void tbaTestFromDocumentSnapshot() {

@@ -1,5 +1,6 @@
 package hu.javorekdenes.hwtracer.model.processed;
 
+import hu.javorekdenes.hwtracer.model.HardwareManufacturer;
 import hu.javorekdenes.hwtracer.model.HardwareType;
 import hu.javorekdenes.hwtracer.model.Price;
 import hu.javorekdenes.hwtracer.model.raw.Hardware;
@@ -12,13 +13,14 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 @AllArgsConstructor
 public class ProcessedHardware extends Hardware {
-    @NonNull private String brand;
+    @NonNull private HardwareManufacturer brand;
     @NonNull private String modelName;
     private boolean warranty;
 
-    public ProcessedHardware(String name, LocalDate uploadedDate, Price price, String url, HardwareType type, String brand, String modelName) {
+    public ProcessedHardware(String name, LocalDate uploadedDate, Price price, String url, HardwareType type, HardwareManufacturer brand, String modelName, Boolean warranty) {
         super(name, uploadedDate, price, url, type);
         this.brand = brand;
         this.modelName = modelName;
+        this.warranty = warranty;
     }
 }

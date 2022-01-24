@@ -3,7 +3,9 @@ package hu.javorekdenes.hwtracer.repository.firabase.adapter.mapper;
 import com.google.cloud.firestore.DocumentSnapshot;
 import hu.javorekdenes.hwtracer.model.processed.ProcessedVideocard;
 import org.apache.commons.lang3.NotImplementedException;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ProcessedVideocardDocumentMapper extends DocumentMapper<ProcessedVideocard> {
     public static final String COLLECTION_NAME = DocumentCollections.PROCESSED_VIDEOCARD.getCollectionName();
 
@@ -23,11 +25,6 @@ public class ProcessedVideocardDocumentMapper extends DocumentMapper<ProcessedVi
 
     @Override
     public ProcessedVideocard unmarshall(DocumentSnapshot document) throws MappingException {
-        throw new NotImplementedException();
-    }
-
-    @Override
-    public DocumentSnapshot marshall(ProcessedVideocard object) throws MappingException {
         throw new NotImplementedException();
     }
 }

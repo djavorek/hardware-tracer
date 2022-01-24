@@ -1,8 +1,13 @@
 package hu.javorekdenes.hwtracer.repository.firabase.adapter.mapper;
 
 import com.google.cloud.firestore.DocumentSnapshot;
+import hu.javorekdenes.hwtracer.model.Price;
 import hu.javorekdenes.hwtracer.model.raw.Videocard;
+import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+
+@Component
 public class VideocardDocumentMapper extends DocumentMapper<Videocard> {
     public static final String COLLECTION_NAME = DocumentCollections.VIDEOCARD.getCollectionName();
 
@@ -18,11 +23,20 @@ public class VideocardDocumentMapper extends DocumentMapper<Videocard> {
 
     @Override
     public Videocard unmarshall(DocumentSnapshot document) throws MappingException {
-        return null;
-    }
+        Videocard result;
 
-    @Override
-    public DocumentSnapshot marshall(Videocard object) throws MappingException {
-        return null;
+        try {
+            result = new Videocard(
+                    parseField(Integer.class, ID_FIELD, document),
+                    parseField(String.class, NAME_FIELD, document),
+                    parseField(LocalDate.class, DATE_FIELD, document),
+                    parseField(Price.class, PRICE_FIELD, document),
+                    parseField(String.class, URL_FIELD, document)
+            );
+        } catch (RuntimeException e) {
+            throw new MappingException(e);
+        }
+
+        return result;
     }
 }
