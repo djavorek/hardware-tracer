@@ -7,8 +7,8 @@ import lombok.*;
 import java.time.LocalDate;
 
 @NoArgsConstructor
-@RequiredArgsConstructor
 @AllArgsConstructor
+@RequiredArgsConstructor
 @Data
 public class Hardware {
     private Integer id;

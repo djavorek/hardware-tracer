@@ -50,7 +50,6 @@ public abstract class DocumentMapper<T extends Hardware> {
         } else if (fieldType == LocalDate.class) {
             fieldValue = parseDateValue(objectName, document.getString(objectName));
         } else if (fieldType == String.class) {
-            System.out.println(document.getString(objectName));
             fieldValue = parseStringValue(objectName, document.getString(objectName));
         } else {
             throw new UnsupportedOperationException("Given field type is not supported");

@@ -10,12 +10,14 @@ import org.springframework.stereotype.Component;
 
 import hu.javorekdenes.hwtracer.service.RawProcessingService;
 
+import java.time.LocalDate;
+
 @Component
 @Profile("!test")
 public class ApplicationEventListener {
 	private static final Logger logger = LoggerFactory.getLogger(ApplicationEventListener.class);
 
-	private RawProcessingService rawProcessingService;
+	private final RawProcessingService rawProcessingService;
 
 	@Autowired
 	public ApplicationEventListener(RawProcessingService rawProcessingService) {
@@ -25,6 +27,6 @@ public class ApplicationEventListener {
 	@EventListener
 	public void onApplicationEvent(ApplicationReadyEvent event) {
 		logger.info("ApplicationReady event received");
-		rawProcessingService.testFetch();
+		rawProcessingService.processVideocardBetweenDates(LocalDate.now().minusDays(2), LocalDate.now());
 	}
 }

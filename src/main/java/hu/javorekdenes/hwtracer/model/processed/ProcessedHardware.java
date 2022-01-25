@@ -8,10 +8,10 @@ import lombok.*;
 
 import java.time.LocalDate;
 
-@Data
 @NoArgsConstructor
-@RequiredArgsConstructor
 @AllArgsConstructor
+@RequiredArgsConstructor
+@ToString(callSuper=true)
 public class ProcessedHardware extends Hardware {
     @NonNull private HardwareManufacturer brand;
     @NonNull private String modelName;
@@ -23,4 +23,6 @@ public class ProcessedHardware extends Hardware {
         this.modelName = modelName;
         this.warranty = warranty;
     }
+
+
 }

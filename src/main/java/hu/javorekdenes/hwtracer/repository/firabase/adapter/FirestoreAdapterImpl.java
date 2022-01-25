@@ -16,10 +16,10 @@ import java.util.concurrent.ExecutionException;
 
 @Slf4j
 @Component
-public class FirestoreAdapterImpl implements FirestoreAdapter {
+public class FirestoreAdapterImpl<T extends Hardware> implements FirestoreAdapter<T> {
     private final Firestore firestore;
 
-    @Autowired // Autowire all implemented mappers
+    @Autowired // All implemented mappers
     private List<? extends DocumentMapper<? extends Hardware>> mappers;
 
     @Autowired
@@ -27,11 +27,11 @@ public class FirestoreAdapterImpl implements FirestoreAdapter {
         this.firestore = firestore;
     }
 
-    public List<? extends Hardware> getFromCollectionWhereFieldIs(String collection, String fieldName, String fieldValue) throws MappingException {
-        DocumentMapper<? extends Hardware> mapper = this.getMapper(collection);
+    @Override
+    public List<T> getFromCollectionWhereFieldIs(String collection, String fieldName, String fieldValue) throws MappingException {
         ApiFuture<QuerySnapshot> future = this.firestore.collection(collection).whereEqualTo(fieldName, fieldValue).get();
 
-        return executeQuery(mapper, future);
+        return executeQuery(this.getMapper(collection), future);
     }
 
     /**
@@ -41,26 +41,26 @@ public class FirestoreAdapterImpl implements FirestoreAdapter {
      * @param startsWith
      * @return
      */
-    public List<? extends Hardware> getFromCollectionWhereFieldStartsWith(String collection, String fieldName, String startsWith) throws MappingException {
-        DocumentMapper<? extends Hardware> mapper = this.getMapper(collection);
+    @Override
+    public List<T> getFromCollectionWhereFieldStartsWith(String collection, String fieldName, String startsWith) throws MappingException {
 
         ApiFuture<QuerySnapshot> future = this.firestore.collection(collection)
                 .whereGreaterThanOrEqualTo(fieldName, startsWith)
                 .whereLessThanOrEqualTo(fieldName, startsWith + "\uf8ff")
                 .get();
 
-        return executeQuery(mapper, future);
+        return executeQuery(this.getMapper(collection), future);
     }
 
-    public Optional<Hardware> getLastOrderedByField(String collection, String fieldToOrderBy) throws MappingException {
+    @Override
+    public Optional<T> getLastOrderedByField(String collection, String fieldToOrderBy) throws MappingException {
         DocumentMapper<? extends Hardware> mapper = this.getMapper(collection);
-
         ApiFuture<QuerySnapshot> future = this.firestore.collection(collection)
                 .orderBy(fieldToOrderBy)
                 .limitToLast(1)
                 .get();
 
-        List<? extends Hardware> results = executeQuery(mapper, future);
+        List<T> results = executeQuery(this.getMapper(collection), future);
 
         if (results.isEmpty()) {
             return Optional.empty();
@@ -69,13 +69,14 @@ public class FirestoreAdapterImpl implements FirestoreAdapter {
         }
     }
 
-    public void saveBatch(String collectionName, List<? extends Hardware> objectsToSave)  {
+    @Override
+    public void saveBatch(String collectionName, List<T> objectsToSave)  {
         CollectionReference collection = this.firestore.collection(collectionName);
         List<ApiFuture<WriteResult>> createFutures = new ArrayList<>();
 
         objectsToSave.forEach((object) -> {
             DocumentReference document = collection.document();
-            createFutures.add(document.create(object)); // TODO: Write mapper
+            createFutures.add(document.create(object));
         });
 
         createFutures.forEach((future) -> {
@@ -93,13 +94,15 @@ public class FirestoreAdapterImpl implements FirestoreAdapter {
         log.info("Batch firestore save finished.");
     }
 
-    private DocumentMapper<? extends Hardware> getMapper(String collectionName) throws MappingException {
-        return mappers.stream().filter(mapper -> mapper.getCollectionName().equals(collectionName))
+    @SuppressWarnings("unchecked")
+    private DocumentMapper<T> getMapper(String collectionName) throws MappingException {
+        return (DocumentMapper<T>) mappers.stream()
+                .filter(mapper -> mapper.getCollectionName().equals(collectionName))
                 .findFirst()
                 .orElseThrow(MappingException::new);
     }
 
-    private <T extends Hardware> List<T> executeQuery(DocumentMapper<T> mapper, ApiFuture<QuerySnapshot> future) {
+    private List<T> executeQuery(DocumentMapper<T> mapper, ApiFuture<QuerySnapshot> future) {
         List<T> result = new ArrayList<>();
 
         try {

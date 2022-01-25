@@ -1,6 +1,9 @@
 package hu.javorekdenes.hwtracer.model;
 
 import lombok.Getter;
+import org.checkerframework.checker.nullness.qual.Nullable;
+
+import java.util.Arrays;
 
 @Getter
 public enum HardwareManufacturer {
@@ -24,11 +27,19 @@ public enum HardwareManufacturer {
     MANLI("Manli"),
     BIOSTAR("Biostar"),
     COLORFUL("Colorful"),
-    GAINWARD("Gainward");
+    GAINWARD("Gainward"),
+    UNKNOWN("Unknown brand or Reference design");
 
-    private String name;
+    private final String name;
 
     HardwareManufacturer(String name) {
         this.name = name;
+    }
+
+    public static HardwareManufacturer fromName(String name) {
+        return Arrays.stream(values())
+                .filter(value -> value.getName().equalsIgnoreCase(name))
+                .findFirst()
+                .orElse(HardwareManufacturer.UNKNOWN);
     }
 }
