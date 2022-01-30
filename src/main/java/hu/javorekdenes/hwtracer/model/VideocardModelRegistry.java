@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
-public final class VideocardModelRegistry {
+public class VideocardModelRegistry {
     private static final Gson gson = new Gson();
 
     private final String dataFileName;

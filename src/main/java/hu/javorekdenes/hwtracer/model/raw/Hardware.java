@@ -9,12 +9,13 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @RequiredArgsConstructor
-@Data
+@Getter
+@ToString
 public class Hardware {
     private Integer id;
 
     @NonNull
-    private String name;
+    private String title;
     @NonNull
     private LocalDate uploadedDate;
     @NonNull

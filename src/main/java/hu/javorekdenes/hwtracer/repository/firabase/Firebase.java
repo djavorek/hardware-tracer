@@ -23,7 +23,7 @@ public abstract class Firebase<T extends Hardware> {
     }
 
     public void saveBatch(List<T> toSave) {
-        List<T> sanitizedList = toSave.stream().filter(Objects::isNull).collect(Collectors.toList());
+        List<T> sanitizedList = toSave.stream().filter(Objects::nonNull).collect(Collectors.toList());
 
         try {
             firestore.saveBatch(getCollectionName(), sanitizedList);

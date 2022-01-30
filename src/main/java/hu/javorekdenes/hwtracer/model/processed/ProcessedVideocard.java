@@ -7,25 +7,34 @@ import hu.javorekdenes.hwtracer.model.Price;
 import hu.javorekdenes.hwtracer.model.raw.Videocard;
 import lombok.*;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 
 @ToString(callSuper=true)
 @Getter
-public class ProcessedVideocard extends ProcessedHardware {
+public class ProcessedVideocard extends ProcessedHardware implements Serializable {
+    private static final long serialVersionUID = 54083223601L;
 
-    @NonNull
     private final GpuDesigner gpuDesigner;
     private final int memorySize;
 
-    public ProcessedVideocard(String name, LocalDate uploadedDate, Price price, String url,
-                              HardwareManufacturer brand, @NonNull GpuDesigner gpuDesigner, String modelName, Boolean warranty, int memorySize) {
-        super(name, uploadedDate, price, url, HardwareType.VIDEOCARD, brand, modelName, warranty);
+    public ProcessedVideocard(Integer id, String title, LocalDate uploadedDate, Price price, String url,
+                              HardwareManufacturer brand, GpuDesigner gpuDesigner, String modelName, Boolean warranty, int memorySize) {
+        super(id, title, uploadedDate, price, url, HardwareType.VIDEOCARD, brand, modelName, warranty);
+        this.gpuDesigner = gpuDesigner;
+        this.memorySize = memorySize;
+    }
+
+    public ProcessedVideocard(String title, LocalDate uploadedDate, Price price, String url,
+                              HardwareManufacturer brand, GpuDesigner gpuDesigner, String modelName, Boolean warranty, int memorySize) {
+        super(title, uploadedDate, price, url, HardwareType.VIDEOCARD, brand, modelName, warranty);
         this.gpuDesigner = gpuDesigner;
         this.memorySize = memorySize;
     }
 
     public ProcessedVideocard(Videocard videocard, HardwareManufacturer brand, GpuDesigner gpuDesigner, String modelName, Boolean warranty, int memorySize) {
-        this(videocard.getName(), videocard.getUploadedDate(), videocard.getPrice(), videocard.getUrl(), brand, gpuDesigner, modelName, warranty, memorySize);
+        this(videocard.getId(), videocard.getTitle(), videocard.getUploadedDate(), videocard.getPrice(), videocard.getUrl(),
+                brand, gpuDesigner, modelName, warranty, memorySize);
     }
 
 }

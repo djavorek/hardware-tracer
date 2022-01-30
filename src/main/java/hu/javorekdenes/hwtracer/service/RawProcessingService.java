@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -18,11 +19,14 @@ import java.util.Optional;
 public class RawProcessingService {
 	private static final Logger logger = LoggerFactory.getLogger(RawProcessingService.class);
 	private final FirebaseRepository<Videocard> videocardRepository;
+	private final FirebaseRepository<ProcessedVideocard> processedVideocardRepository;
 	private final VideoCardProcessor videocardProcessor;
 
 	@Autowired
-	public RawProcessingService(FirebaseRepository<Videocard> videocardRepository, VideoCardProcessor videocardProcessor) {
+	public RawProcessingService(FirebaseRepository<Videocard> videocardRepository, FirebaseRepository<ProcessedVideocard> processedVideocardRepository,
+								VideoCardProcessor videocardProcessor) {
 		this.videocardRepository = videocardRepository;
+		this.processedVideocardRepository = processedVideocardRepository;
 		this.videocardProcessor = videocardProcessor;
 	}
 
@@ -33,15 +37,29 @@ public class RawProcessingService {
 		try {
 			result = videocardRepository.findLatest();
 
-			//results = videocardRepository.findAllWhereDay(LocalDate.of(2021, 10,10));
+			//results = videocardRepository.findAllWhereDay(LocalDate.of(2022, 1,1));
 		} catch (RepositoryException e) {
 			e.printStackTrace();
 		}
 
-		if(result.isPresent()){
+		if (result.isPresent()){
 			ProcessedVideocard processedVideocard = videocardProcessor.process(result.get());
 			System.out.println(processedVideocard);
+			try {
+				processedVideocardRepository.saveBatch(List.of(processedVideocard));
+			} catch (RepositoryException e) {
+				e.printStackTrace();
+			}
 		}
+
+		try {
+			// TODO: Continue
+			Optional<ProcessedVideocard> processedVideocardBack = processedVideocardRepository.findLatest();
+			System.out.println(processedVideocardBack.get());
+		} catch (RepositoryException e) {
+			e.printStackTrace();
+		}
+
 
 	}
 

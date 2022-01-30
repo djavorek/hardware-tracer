@@ -12,6 +12,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoField;
+import java.util.Map;
 import java.util.Objects;
 
 @Slf4j
@@ -29,7 +30,7 @@ public abstract class DocumentMapper<T extends Hardware> {
     }
 
     public abstract T unmarshall(DocumentSnapshot document) throws MappingException;
-    // public abstract DocumentSnapshot marshall(T object) throws MappingException;
+    public abstract Map<String,Object> marshall(T object) throws MappingException;
 
     public String getCollectionName() {
         return collectionName;
@@ -51,10 +52,24 @@ public abstract class DocumentMapper<T extends Hardware> {
             fieldValue = parseDateValue(objectName, document.getString(objectName));
         } else if (fieldType == String.class) {
             fieldValue = parseStringValue(objectName, document.getString(objectName));
+        } else if (fieldType == Boolean.class) {
+            fieldValue = parseBooleanValue(objectName, document.getBoolean(objectName));
+        } else if (Enum.class.isAssignableFrom(fieldType)) {
+            fieldValue = parseEnumValue(fieldType, objectName, document.getString(objectName));
         } else {
             throw new UnsupportedOperationException("Given field type is not supported");
         }
         return fieldType.cast(fieldValue);
+    }
+
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    private Enum parseEnumValue(Class enumClass, String fieldName,  String enumNameValue) {
+        try {
+            return Enum.valueOf(enumClass, enumNameValue);
+        } catch (IllegalArgumentException e) {
+            log.warn(MSG_INVALID_VALUE, fieldName, enumNameValue);
+            throw new IllegalArgumentException(e);
+        }
     }
 
     Price parsePriceValue(String fieldName, String priceString) throws IllegalArgumentException {
@@ -111,5 +126,14 @@ public abstract class DocumentMapper<T extends Hardware> {
         }
 
         return string;
+    }
+
+    private Boolean parseBooleanValue(String fieldName, Boolean booleanValue) {
+        if (booleanValue == null) {
+            log.warn(MSG_NULL_VALUE, fieldName);
+            throw new IllegalArgumentException();
+        }
+
+        return booleanValue;
     }
 }

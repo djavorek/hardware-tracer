@@ -16,7 +16,7 @@ import java.util.concurrent.ExecutionException;
 
 @Slf4j
 @Component
-public class FirestoreAdapterImpl<T extends Hardware> implements FirestoreAdapter<T> {
+public class  FirestoreAdapterImpl<T extends Hardware> implements FirestoreAdapter<T> {
     private final Firestore firestore;
 
     @Autowired // All implemented mappers
@@ -53,14 +53,14 @@ public class FirestoreAdapterImpl<T extends Hardware> implements FirestoreAdapte
     }
 
     @Override
-    public Optional<T> getLastOrderedByField(String collection, String fieldToOrderBy) throws MappingException {
-        DocumentMapper<? extends Hardware> mapper = this.getMapper(collection);
-        ApiFuture<QuerySnapshot> future = this.firestore.collection(collection)
+    public Optional<T> getLastOrderedByField(String collectionName, String fieldToOrderBy) throws MappingException {
+        DocumentMapper<? extends Hardware> mapper = this.getMapper(collectionName);
+        ApiFuture<QuerySnapshot> future = this.firestore.collection(collectionName)
                 .orderBy(fieldToOrderBy)
                 .limitToLast(1)
                 .get();
 
-        List<T> results = executeQuery(this.getMapper(collection), future);
+        List<T> results = executeQuery(this.getMapper(collectionName), future);
 
         if (results.isEmpty()) {
             return Optional.empty();
@@ -70,13 +70,18 @@ public class FirestoreAdapterImpl<T extends Hardware> implements FirestoreAdapte
     }
 
     @Override
-    public void saveBatch(String collectionName, List<T> objectsToSave)  {
+    public void saveBatch(String collectionName, List<T> objectsToSave) throws MappingException {
         CollectionReference collection = this.firestore.collection(collectionName);
         List<ApiFuture<WriteResult>> createFutures = new ArrayList<>();
+        DocumentMapper<T> mapper = this.getMapper(collectionName);
 
         objectsToSave.forEach((object) -> {
             DocumentReference document = collection.document();
-            createFutures.add(document.create(object));
+            try {
+                createFutures.add(document.create(mapper.marshall(object)));
+            } catch (MappingException e) {
+                log.warn("Could not marshall one of the objects during save: ", e);
+            }
         });
 
         createFutures.forEach((future) -> {
@@ -87,7 +92,7 @@ public class FirestoreAdapterImpl<T extends Hardware> implements FirestoreAdapte
                 log.warn("Save ran into interruption");
                 throw new FirestoreException(e);
             } catch (ExecutionException e) {
-                // log.warn("Execution problem, probably document already exists: " + e.getMessage());
+                log.warn("Execution problem, probably document already exists: " + e.getMessage());
             }
         });
 

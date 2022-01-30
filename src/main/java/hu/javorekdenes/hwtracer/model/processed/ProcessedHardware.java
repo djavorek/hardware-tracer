@@ -9,20 +9,24 @@ import lombok.*;
 import java.time.LocalDate;
 
 @NoArgsConstructor
-@AllArgsConstructor
-@RequiredArgsConstructor
+@Getter
 @ToString(callSuper=true)
 public class ProcessedHardware extends Hardware {
-    @NonNull private HardwareManufacturer brand;
-    @NonNull private String modelName;
+    private HardwareManufacturer manufacturer;
+    private String modelName;
     private boolean warranty;
 
-    public ProcessedHardware(String name, LocalDate uploadedDate, Price price, String url, HardwareType type, HardwareManufacturer brand, String modelName, Boolean warranty) {
-        super(name, uploadedDate, price, url, type);
-        this.brand = brand;
+    public ProcessedHardware(Integer id, String title, LocalDate uploadedDate, Price price, String url, HardwareType type, HardwareManufacturer manufacturer, String modelName, Boolean warranty) {
+        super(id, title, uploadedDate, price, url, type);
+        this.manufacturer = manufacturer;
         this.modelName = modelName;
         this.warranty = warranty;
     }
 
-
+    public ProcessedHardware(String name, LocalDate uploadedDate, Price price, String url, HardwareType type, HardwareManufacturer manufacturer, String modelName, Boolean warranty) {
+        super(name, uploadedDate, price, url, type);
+        this.manufacturer = manufacturer;
+        this.modelName = modelName;
+        this.warranty = warranty;
+    }
 }

@@ -1,6 +1,11 @@
 package hu.javorekdenes.hwtracer.model;
 
-public class Price {
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor
+@Getter
+public final class Price {
     private static final String FORINT = "Ft";
 
     private Integer amount;

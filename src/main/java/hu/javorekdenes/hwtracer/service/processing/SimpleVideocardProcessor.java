@@ -6,6 +6,7 @@ import hu.javorekdenes.hwtracer.model.VideocardModelRegistry;
 import hu.javorekdenes.hwtracer.model.processed.ProcessedVideocard;
 import hu.javorekdenes.hwtracer.model.raw.Videocard;
 import hu.javorekdenes.hwtracer.service.VideoCardProcessor;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -24,7 +25,7 @@ public class SimpleVideocardProcessor implements VideoCardProcessor {
 
     @Override
     public ProcessedVideocard process(Videocard toProcess) {
-        String title = toProcess.getName();
+        String title = toProcess.getTitle();
 
         String modelName = findModelName(title);
         HardwareManufacturer manufacturer = findManufacturer(title);
@@ -36,12 +37,14 @@ public class SimpleVideocardProcessor implements VideoCardProcessor {
     }
 
     private String findModelName(String title) {
+        String UNKNOWN_MODEL = "Unknown model";
+
         Map<String, Integer> matchCountMap = new HashMap<>();
         title = title.toUpperCase();
 
         for (String model : modelRegistry.getAllModels()) {
             int countForModel = 0;
-            // TODO: Cache this
+            // TODO: Cache this. Move this logic to model registry
             String[] modelNameParts = model.toUpperCase().split("\\s+");
 
             for (String modelNamePart : modelNameParts) {
@@ -52,16 +55,15 @@ public class SimpleVideocardProcessor implements VideoCardProcessor {
             matchCountMap.put(model, countForModel);
         }
 
+        if (matchCountMap.isEmpty()) {
+            return UNKNOWN_MODEL;
+        }
+
         Integer maxMatchCount = Collections.max(matchCountMap.entrySet(), Map.Entry.comparingByValue()).getValue();
         List<String> modelsWithMaxHitCount = matchCountMap.entrySet().stream()
                 .filter(entry -> Objects.equals(entry.getValue(), maxMatchCount))
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
-
-
-        if (modelsWithMaxHitCount.isEmpty()) {
-            return "Unknown model";
-        }
 
         if (modelsWithMaxHitCount.size() > 1) {
             return modelsWithMaxHitCount.stream().min(Comparator.comparingInt(String::length)).get();
@@ -87,11 +89,51 @@ public class SimpleVideocardProcessor implements VideoCardProcessor {
     }
 
     private int findMemorySize(String title) {
-        // TODO
-        return 2;
+        List<String> keywords = List.of("gb", "giga", "gib", "g");
+        String[] titleParts = title.toLowerCase().split("\\s+");
+
+        for (int i = 0; i < titleParts.length ; i++) {
+            for (String keyword : keywords) {
+                String titlePart = titleParts[i];
+                if (titlePart.endsWith(keyword)) {
+                    if (titlePart.length() > keyword.length()) {
+                        String partWithoutKeyword = titlePart.replace(keyword, "");
+
+                        if (NumberUtils.isParsable(partWithoutKeyword)) {
+                            return Integer.parseInt(partWithoutKeyword);
+                        } else if (i > 0 && NumberUtils.isParsable(titleParts[i-1])) {
+                            return Integer.parseInt(titleParts[i-1]);
+                        } else {
+                            return 0;
+                        }
+                    }
+                }
+            }
+        }
+
+        return 0;
     }
 
     private Boolean findWarranty(String title) {
+        List<String> keywords = List.of("warr", "gar");
+        List<String> antiKeyword = List.of("no", "lejárt", "nincs");
+
+        String[] titleParts = title.toLowerCase().split("\\s+");
+
+        for (int i = 0; i < titleParts.length ; i++) {
+            int nthPart = i;
+
+            boolean containsWarrantyKeyword = keywords.stream().anyMatch((keyword) -> titleParts[nthPart].contains(keyword));
+
+            if (containsWarrantyKeyword) {
+                if ((nthPart > 0 && antiKeyword.stream().anyMatch((keyword) -> titleParts[nthPart - 1].contains(keyword))) ||
+                        (nthPart < titleParts.length - 1 && antiKeyword.stream().anyMatch((keyword) -> titleParts[nthPart + 1].contains(keyword)))) {
+                    return false;
+                }
+                return true;
+            }
+        }
+
         return false;
     }
 }

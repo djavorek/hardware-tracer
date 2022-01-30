@@ -9,6 +9,7 @@ import hu.javorekdenes.hwtracer.repository.firabase.adapter.mapper.DocumentColle
 import hu.javorekdenes.hwtracer.repository.firabase.adapter.mapper.MappingException;
 import hu.javorekdenes.hwtracer.repository.firabase.adapter.mapper.ProcessedVideocardDocumentMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -18,6 +19,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Repository
 public class ProcessedVideocardRepositoryImpl extends Firebase<ProcessedVideocard> implements FirebaseRepository<ProcessedVideocard> {
     private static final String COLLECTION_NAME = DocumentCollections.PROCESSED_VIDEOCARD.getCollectionName();
 
