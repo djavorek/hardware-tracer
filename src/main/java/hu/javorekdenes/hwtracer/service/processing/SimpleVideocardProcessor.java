@@ -115,7 +115,7 @@ public class SimpleVideocardProcessor implements VideoCardProcessor {
     }
 
     private Boolean findWarranty(String title) {
-        List<String> keywords = List.of("warr", "gar");
+        List<String> keywords = List.of("warr", "gar", "új", "bontatlan");
         List<String> antiKeyword = List.of("no", "lejárt", "nincs");
 
         String[] titleParts = title.toLowerCase().split("\\s+");

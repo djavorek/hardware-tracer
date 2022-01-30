@@ -1,5 +1,9 @@
 {
     "AMD": [
+      "Radeon 660M",
+      "Radeon 680M",
+      "Radeon Pro W6400",
+      "Radeon RX 6300M",
       "Radeon RX 6400",
       "Radeon RX 6500 XT",
       "Radeon RX 7900 XT",
@@ -192,6 +196,9 @@
       "Xe DG1-SDV"
     ],
     "NVIDIA": [
+      "GeForce MX550",
+      "GeForce MX570",
+      "GeForce RTX 2050 Mobile",
       "GeForce RTX 3050 4 GB",
       "GeForce RTX 3050 8 GB",
       "GeForce RTX 3060 Ti GA103",
