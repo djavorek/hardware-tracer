@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
@@ -107,7 +108,7 @@ public class  FirestoreAdapterImpl<T extends Hardware> implements FirestoreAdapt
                 .orElseThrow(MappingException::new);
     }
 
-    private List<T> executeQuery(DocumentMapper<T> mapper, ApiFuture<QuerySnapshot> future) {
+    private List<T> executeQuery(DocumentMapper<T> mapper, ApiFuture<QuerySnapshot> future) throws MappingException {
         List<T> result = new ArrayList<>();
 
         try {
@@ -117,9 +118,12 @@ public class  FirestoreAdapterImpl<T extends Hardware> implements FirestoreAdapt
                 try {
                     result.add(mapper.unmarshall(document));
                 } catch (MappingException e) {
-                    log.warn("Document could not be mapped to domain object, it will not be in the results. See: {}", e.getMessage());
+                    log.warn("Document could not be mapped to domain object, it will not be in the results. See: {}", e.getCause().getMessage());
                 }
             });
+            if (documents.size() > result.size()) {
+                throw new MappingException();
+            }
         } catch (InterruptedException e) {
             log.warn("Query ran into interruption");
             throw new FirestoreException(e);

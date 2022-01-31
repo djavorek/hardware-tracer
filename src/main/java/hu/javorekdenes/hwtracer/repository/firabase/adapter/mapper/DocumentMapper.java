@@ -45,9 +45,9 @@ public abstract class DocumentMapper<T extends Hardware> {
         Object fieldValue;
 
         if (fieldType == Integer.class) {
-            fieldValue = parseIntValue(objectName, document.getString(objectName));
+            fieldValue = parseIntValue(objectName, document.get(objectName));
         } else if (fieldType == Price.class) {
-            fieldValue = parsePriceValue(objectName, document.getString(objectName));
+            fieldValue = parsePriceValue(objectName, document.get(objectName));
         } else if (fieldType == LocalDate.class) {
             fieldValue = parseDateValue(objectName, document.getString(objectName));
         } else if (fieldType == String.class) {
@@ -72,30 +72,43 @@ public abstract class DocumentMapper<T extends Hardware> {
         }
     }
 
-    Price parsePriceValue(String fieldName, String priceString) throws IllegalArgumentException {
-        try {
-            String amountString = priceString.substring(0, priceString.lastIndexOf(' ') + 1).replaceAll("\\s", "");
-            Integer amount = Integer.parseInt(Objects.requireNonNull(amountString));
-            return new Price(amount);
-        } catch (NumberFormatException e) {
-            log.warn(MSG_INVALID_VALUE, fieldName, priceString);
-            throw new IllegalArgumentException(e);
-        } catch (NullPointerException npe) {
-            log.warn(MSG_NULL_VALUE, fieldName);
-            throw new IllegalArgumentException(npe);
+    Price parsePriceValue(String fieldName, Object priceObj) throws IllegalArgumentException {
+        if (priceObj instanceof Long) {
+            return new Price(((Long) priceObj).intValue());
+        } else if (priceObj instanceof String) {
+            String priceString = (String) priceObj;
+            try {
+                String amountString = priceString.substring(0, priceString.lastIndexOf(' ') + 1).replaceAll("\\s", "");
+                Integer amount = Integer.parseInt(Objects.requireNonNull(amountString));
+                return new Price(amount);
+            } catch (NumberFormatException e) {
+                log.warn(MSG_INVALID_VALUE, fieldName, priceString);
+                throw new IllegalArgumentException(e);
+            } catch (NullPointerException npe) {
+                log.warn(MSG_NULL_VALUE, fieldName);
+                throw new IllegalArgumentException(npe);
+            }
         }
+        throw new IllegalArgumentException("Not supported type to parse Price from.");
     }
 
-    private Integer parseIntValue(String fieldName, String integerString) throws IllegalArgumentException {
-        try {
-            return Integer.parseInt(Objects.requireNonNull(integerString));
-        } catch (NumberFormatException e) {
-            log.warn(MSG_INVALID_VALUE, fieldName, integerString);
-            throw new IllegalArgumentException(e);
-        } catch (NullPointerException npe) {
-            log.warn(MSG_NULL_VALUE, fieldName);
-            throw new IllegalArgumentException(npe);
+    private Integer parseIntValue(String fieldName, Object integerObj) throws IllegalArgumentException {
+        if (integerObj instanceof Integer) {
+            return (Integer) integerObj;
+        } else if (integerObj instanceof Long) {
+            return ((Long) integerObj).intValue();
+        } else if (integerObj instanceof String) {
+            try {
+                return Integer.parseInt(Objects.requireNonNull((String) integerObj));
+            } catch (NumberFormatException e) {
+                log.warn(MSG_INVALID_VALUE, fieldName, integerObj);
+                throw new IllegalArgumentException(e);
+            } catch (NullPointerException npe) {
+                log.warn(MSG_NULL_VALUE, fieldName);
+                throw new IllegalArgumentException(npe);
+            }
         }
+        throw new IllegalArgumentException("Not supported type to parse integer from.");
     }
 
     private LocalDate parseDateValue(String fieldName, String dateString) throws IllegalArgumentException {

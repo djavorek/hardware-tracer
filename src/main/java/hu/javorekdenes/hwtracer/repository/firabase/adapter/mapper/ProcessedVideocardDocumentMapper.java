@@ -1,19 +1,20 @@
 package hu.javorekdenes.hwtracer.repository.firabase.adapter.mapper;
 
-import java.sql.Timestamp;
 import com.google.cloud.firestore.DocumentSnapshot;
 import hu.javorekdenes.hwtracer.model.GpuDesigner;
 import hu.javorekdenes.hwtracer.model.HardwareManufacturer;
 import hu.javorekdenes.hwtracer.model.Price;
 import hu.javorekdenes.hwtracer.model.processed.ProcessedVideocard;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.time.temporal.TemporalField;
 import java.util.HashMap;
 import java.util.Map;
 
 @Component
+@Slf4j
 public class ProcessedVideocardDocumentMapper extends DocumentMapper<ProcessedVideocard> {
     public static final String COLLECTION_NAME = DocumentCollections.PROCESSED_VIDEOCARD.getCollectionName();
 
@@ -51,6 +52,7 @@ public class ProcessedVideocardDocumentMapper extends DocumentMapper<ProcessedVi
                     parseField(Integer.class, MEMORY_SIZE_FIELD, document)
             );
         } catch (RuntimeException e) {
+            log.warn("Something went wrong while mapping ProcessedVideocard to object: ", e);
             throw new MappingException(e);
         }
 
@@ -67,8 +69,8 @@ public class ProcessedVideocardDocumentMapper extends DocumentMapper<ProcessedVi
         document.put(PRICE_FIELD, object.getPrice().getAmount());
         document.put(URL_FIELD, object.getUrl());
 
-        document.put(MANUFACTURER_FIELD, object.getManufacturer().getName());
-        document.put(GPU_DESIGNER_FIELD, object.getGpuDesigner().getName());
+        document.put(MANUFACTURER_FIELD, object.getManufacturer().name());
+        document.put(GPU_DESIGNER_FIELD, object.getGpuDesigner().name());
         document.put(MODEL_FIELD, object.getModelName());
         document.put(MEMORY_SIZE_FIELD, object.getMemorySize());
         document.put(WARRANTY_FIELD, object.isWarranty());
