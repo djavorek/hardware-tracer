@@ -19,7 +19,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Repository
+@Repository("rawVideocard")
 public class VideocardRepositoryImpl extends Firebase<Videocard> implements FirebaseRepository<Videocard> {
     private static final String COLLECTION_NAME = DocumentCollections.VIDEOCARD.getCollectionName();
 

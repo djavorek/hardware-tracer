@@ -19,7 +19,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Repository
+@Repository("processedVideocard")
 public class ProcessedVideocardRepositoryImpl extends Firebase<ProcessedVideocard> implements FirebaseRepository<ProcessedVideocard> {
     private static final String COLLECTION_NAME = DocumentCollections.PROCESSED_VIDEOCARD.getCollectionName();
 

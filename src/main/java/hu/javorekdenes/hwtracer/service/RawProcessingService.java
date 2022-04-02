@@ -8,10 +8,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -26,7 +28,7 @@ public class RawProcessingService<S extends Hardware, T extends ProcessedHardwar
 	private final HardwareProcessor<S, T> hardwareProcessor;
 
 	@Autowired
-	public RawProcessingService(FirebaseRepository<S> rawRepository, FirebaseRepository<T> processedRepository,
+	public RawProcessingService(@Qualifier("rawVideocard")FirebaseRepository<S> rawRepository, @Qualifier("processedVideocard") FirebaseRepository<T> processedRepository,
 								HardwareProcessor<S, T> hardwareProcessor) {
 		this.rawRepository = rawRepository;
 		this.processedRepository = processedRepository;
@@ -35,7 +37,7 @@ public class RawProcessingService<S extends Hardware, T extends ProcessedHardwar
 
 	public  void processAllUnprocessed() {
 		Optional<T> latestProcessed;
-		LocalDate lastProcessedDate;
+
 		try {
 			latestProcessed = processedRepository.findLatest();
 		} catch (RepositoryException e) {
@@ -43,38 +45,44 @@ public class RawProcessingService<S extends Hardware, T extends ProcessedHardwar
 			return;
 		}
 
+		List<S> toProcess = getRemainingHardwareToProcess(latestProcessed);
+
+
+		try {
+			List<T> processedHardware = processListOfHardware(toProcess);
+			processedRepository.saveBatch(processedHardware);
+		} catch (HardwareProcessingException e) {
+			e.printStackTrace();
+		} catch (RepositoryException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	private List<S> getRemainingHardwareToProcess(Optional<T> latestProcessed) {
+		LocalDate lastProcessedDate;
+		List<S> toProcess;
+
 		if (latestProcessed.isEmpty()) {
 			lastProcessedDate = LocalDate.of(2021, 1, 1); // Date older than any raw data
 		} else {
 			lastProcessedDate = latestProcessed.get().getUploadedDate();
 		}
 
-		List<S> toProcess = null;
-
 		try {
-			toProcess = rawRepository.findAllWhereDay(lastProcessedDate.plus(Duration.ofDays(1)));
+			toProcess = rawRepository.findAllWhereDay(lastProcessedDate.plus(1, ChronoUnit.DAYS));
 		} catch (RepositoryException e) {
 			log.error("Cannot process raw videocards as could not load them.", e);
-			return;
+			return Collections.emptyList();
 		}
+		return toProcess;
+	}
 
-		List<T> processedVideocards = toProcess.stream()
+	private List<T> processListOfHardware(List<S> toProcess) throws HardwareProcessingException {
+		return toProcess.stream()
 				.map(hardwareProcessor::process)
+				.limit(10)
 				.collect(Collectors.toList());
-
-	}
-
-	private List<S> getRawHardwareWithUploadDate(LocalDate uploadDate) throws HardwareProcessingException {
-		try {
-			return rawRepository.findAllWhereDay(uploadDate);
-		} catch (RepositoryException e) {
-			log.error("Cannot process raw videocards as could not load them.", e);
-			throw new HardwareProcessingException(e);
-		}
-	}
-
-	private void processVideocardsWithUploadDate(List<S> toProcess) throws HardwareProcessingException {
-
 	}
 
 }

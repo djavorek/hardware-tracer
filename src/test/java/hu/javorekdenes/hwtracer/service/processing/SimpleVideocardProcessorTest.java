@@ -84,14 +84,16 @@ public class SimpleVideocardProcessorTest {
         Map<String, String> titleToModelMap = Map.of(
                 "SAPPHIRE Radeon RX 570 Pulse 4GB GDDR5 256bit Eladó", "Radeon RX 570",
                 "Új, bontatlan Zotac GeForce RTX 3070 Ti Trinity OC 8G - 3 év MAGYAR garival! - ÁFÁ-s számla ON! -", "GeForce RTX 3070 Ti",
-                "GTX950 2GB", "GeForce GTX 950"
+                "GTX950 2GB", "GeForce GTX 950",
+                "Gainward GTX 1080 Phoenix 8GB", "GeForce GTX 1080"
         );
 
         List<String> mockModelRegistryContent = List.of(
-                "Radeon RX 5700", "Radeon RX 5700 XT", "Radeon RX 570X", "Radeon RX 570", "Radeon RX 570 X2",
+                "Radeon RX 570", "Radeon RX 5700", "Radeon RX 5700 XT", "Radeon RX 570X",  "Radeon RX 570 X2",
                 "Radeon HD 8570 OEM", "Radeon HD 7570",
                 "GeForce RTX 3070 Ti 16 GB", "GeForce RTX 3070 Ti", "GeForce RTX 3070",
-                "GeForce GTX 950", "GeForce GTX 960");
+                "GeForce GTX 950", "GeForce GTX 960",
+                "GeForce GTX 1080", "GeForce GTX 1080 Ti 10 GB");
 
         return titleToModelMap.entrySet().stream()
                 .map(entry -> DynamicTest.dynamicTest("Model processing test: " + entry.getKey() , () -> {

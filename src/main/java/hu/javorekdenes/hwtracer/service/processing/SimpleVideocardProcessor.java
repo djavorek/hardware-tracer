@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 public class SimpleVideocardProcessor implements HardwareProcessor<Videocard, ProcessedVideocard> {
 
     private final VideocardModelRegistry modelRegistry;
+    private final Map<String, String[]> modelNamePartCache = new HashMap<>();
 
     @Autowired
     public SimpleVideocardProcessor(VideocardModelRegistry modelRegistry) {
@@ -39,24 +40,14 @@ public class SimpleVideocardProcessor implements HardwareProcessor<Videocard, Pr
     private String findModelName(String title) {
         String UNKNOWN_MODEL = "Unknown model";
 
-        Map<String, Integer> matchCountMap = new HashMap<>();
-        title = title.toUpperCase();
+        Map<String, Integer> matchCountMap = getMatchScoreForModels(title, true);
 
-        for (String model : modelRegistry.getAllModels()) {
-            int countForModel = 0;
-            // TODO: Cache this. Move this logic to model registry
-            String[] modelNameParts = model.toUpperCase().split("\\s+");
+        if (matchCountMap.values().stream().noneMatch((v) -> v > 0)) {
+            matchCountMap = getMatchScoreForModels(title, false);
 
-            for (String modelNamePart : modelNameParts) {
-                if (title.contains(modelNamePart)) {
-                    countForModel++;
-                }
+            if (matchCountMap.values().stream().noneMatch((v) -> v > 0)) {
+                return UNKNOWN_MODEL;
             }
-            matchCountMap.put(model, countForModel);
-        }
-
-        if (matchCountMap.isEmpty()) {
-            return UNKNOWN_MODEL;
         }
 
         Integer maxMatchCount = Collections.max(matchCountMap.entrySet(), Map.Entry.comparingByValue()).getValue();
@@ -135,5 +126,33 @@ public class SimpleVideocardProcessor implements HardwareProcessor<Videocard, Pr
         }
 
         return false;
+    }
+
+    // TODO: Move out
+    private Map<String, Integer> getMatchScoreForModels(String title, boolean strict) {
+        Map<String, Integer> matchCountMap = new HashMap<>();
+        title = title.toUpperCase();
+
+        for (String model : modelRegistry.getAllModels()) {
+            int countForModel = 0;
+
+            modelNamePartCache.putIfAbsent(model, model.toUpperCase().split("\\s+"));
+            String[] modelNameParts = modelNamePartCache.get(model);
+
+            for (String modelNamePart : modelNameParts) {
+                if (strict) {
+                    if (title.contains(" " + modelNamePart + " ") || title.endsWith(" " + modelNamePart) || title.startsWith(modelNamePart + " ")) {
+                        countForModel++;
+                    }
+                } else {
+                    if (title.contains(modelNamePart)) {
+                        countForModel++;
+                    }
+                }
+
+            }
+            matchCountMap.put(model, countForModel);
+        }
+        return matchCountMap;
     }
 }
