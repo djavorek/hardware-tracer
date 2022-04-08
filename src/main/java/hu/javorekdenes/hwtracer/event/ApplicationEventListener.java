@@ -2,7 +2,7 @@ package hu.javorekdenes.hwtracer.event;
 
 import hu.javorekdenes.hwtracer.model.processed.ProcessedVideocard;
 import hu.javorekdenes.hwtracer.model.raw.Videocard;
-import hu.javorekdenes.hwtracer.service.RawProcessingService;
+import hu.javorekdenes.hwtracer.service.ProcessingMediator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,16 +16,16 @@ import org.springframework.stereotype.Component;
 public class ApplicationEventListener {
 	private static final Logger logger = LoggerFactory.getLogger(ApplicationEventListener.class);
 
-	private final RawProcessingService<Videocard, ProcessedVideocard> videocardProcessingService;
+	private final ProcessingMediator<Videocard, ProcessedVideocard> processingMediator;
 
 	@Autowired
-	public ApplicationEventListener(RawProcessingService<Videocard, ProcessedVideocard> videocardProcessingService) {
-		this.videocardProcessingService = videocardProcessingService;
+	public ApplicationEventListener(ProcessingMediator<Videocard, ProcessedVideocard> processingMediator) {
+		this.processingMediator = processingMediator;
 	}
 
 	@EventListener
 	public void onApplicationEvent(ApplicationReadyEvent event) {
 		logger.info("ApplicationReady event received. Kick off processing..");
-		videocardProcessingService.processAllUnprocessed();
+		processingMediator.processAndReportAllUnprocessed();
 	}
 }

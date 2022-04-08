@@ -5,7 +5,6 @@ import hu.javorekdenes.hwtracer.model.HardwareManufacturer;
 import hu.javorekdenes.hwtracer.model.VideocardModelRegistry;
 import hu.javorekdenes.hwtracer.model.processed.ProcessedVideocard;
 import hu.javorekdenes.hwtracer.model.raw.Videocard;
-import hu.javorekdenes.hwtracer.service.HardwareProcessor;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

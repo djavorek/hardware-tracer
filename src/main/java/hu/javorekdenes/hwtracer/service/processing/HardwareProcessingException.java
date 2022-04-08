@@ -1,4 +1,4 @@
-package hu.javorekdenes.hwtracer.service;
+package hu.javorekdenes.hwtracer.service.processing;
 
 public class HardwareProcessingException extends Exception {
     public static final String MSG = "Error during processing raw hardware items. ";

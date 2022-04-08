@@ -3,7 +3,8 @@ package hu.javorekdenes.hwtracer.service;
 import hu.javorekdenes.hwtracer.model.processed.ProcessedHardware;
 import hu.javorekdenes.hwtracer.model.raw.Hardware;
 
-@FunctionalInterface
-public interface HardwareProcessor<S extends Hardware, T extends ProcessedHardware> {
-    T process(S toProcess);
+import java.util.List;
+
+public interface ReportingService<T extends ProcessedHardware> {
+    void saveDailyReport(List<T> reportSubjects);
 }
