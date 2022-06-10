@@ -19,18 +19,20 @@ import java.util.Optional;
 @Component
 @Slf4j
 public class ProcessingMediator<S extends Hardware, T extends ProcessedHardware> {
-    private final ProcessingServiceImpl<S, T> processingService;
 
+    private final ProcessingService<S, T> processingService;
+    private final ReportingService<T> reportingService;
 
     private final FirebaseRepository<S> rawRepository;
     private final FirebaseRepository<T> processedRepository;
 
     @Autowired
     public ProcessingMediator(
-            ProcessingServiceImpl<S, T> processingService,
+            ProcessingService<S, T> processingService, ReportingService<T> reportingService,
             @Qualifier("rawVideocard") FirebaseRepository<S> rawRepository,
             @Qualifier("processedVideocard") FirebaseRepository<T> processedRepository) {
         this.processingService = processingService;
+        this.reportingService = reportingService;
         this.rawRepository = rawRepository;
         this.processedRepository = processedRepository;
     }

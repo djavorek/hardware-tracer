@@ -5,21 +5,19 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
 public class DailyReport {
     private LocalDate date;
     private Integer numberOfItems;
-    private List<String> mostPopularTags;
+    private Map<ReportedHardware, Price> hardwarePriceMap;
     private Price medianPrice;
 
     public static class DailyReportBuilder {
         public DailyReportBuilder() {
             this.date = LocalDate.now();
-            this.mostPopularTags = new ArrayList<>();
         }
     }
 }
